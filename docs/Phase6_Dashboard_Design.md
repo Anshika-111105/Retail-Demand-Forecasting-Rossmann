@@ -1,0 +1,90 @@
+# Phase 6: Dashboard Design
+## Retail Demand Forecasting & Inventory Optimization Platform
+
+**Methodology Reference:** CRISP-DM — Phase 6 (Deployment / Evaluation support)
+**Framework:** Streamlit multi-page app (`dashboard/`)
+**Document Version:** 1.0
+
+---
+
+## 1. Objective
+
+Give each RetailX stakeholder group (Section 6 of [Phase1_Business_Understanding.md](Phase1_Business_Understanding.md))
+a focused view into Rossmann store performance, promotions, holidays, and forecasted demand —
+reusing the same architecture originally planned for M5, with pages redesigned around Rossmann's
+store-level (not per-SKU) grain.
+
+## 2. Global Filters (available on every page via `dashboard/components/`)
+
+- **Store** (single or multi-select, 1,115 stores)
+- **StoreType** (a/b/c/d) and **Assortment** (basic/extra/extended)
+- **Date range** (bounded to 2013-01-01–2015-07-31 for historical pages; extends into the
+  forecast horizon on the Forecast/Inventory pages)
+- **Promo status** (all / promo days only / non-promo days only)
+
+## 3. Pages
+
+### 3.1 Executive Dashboard
+Chain-wide KPI summary: total revenue, revenue trend (from `04_monthly_revenue_and_growth.sql`),
+total customers, average sales-per-customer, top/bottom 5 stores. Single-glance health check for
+leadership.
+
+### 3.2 Store Performance
+Store-level ranking and drill-down (`01_store_performance.sql`): revenue rank/percentile,
+average daily sales, sales-per-customer, StoreType/Assortment comparison. Supports the
+"which stores need operational review" question from Section 5.2 of the business understanding doc.
+
+### 3.3 Sales Analytics
+Time-series exploration of daily/weekly/monthly sales for a selected store or store group,
+including the rolling 7-day/30-day average and volatility band (`05_rolling_averages.sql`) to
+visually separate genuine trend shifts from day-to-day noise.
+
+### 3.4 Promotion Analytics
+Promotion uplift by store (`02_promotion_effectiveness.sql`), Promo vs. Promo2 comparison, and a
+ranked list of stores where promotions are most/least effective — directly supporting promotion
+ROI decisions for the marketing team.
+
+### 3.5 Holiday Impact
+State-holiday and school-holiday demand comparison (`03_holiday_impact.sql`), broken out by
+holiday type (public/Easter/Christmas), to drive holiday inventory pre-positioning decisions.
+
+### 3.6 Forecast Dashboard
+Per-store forecast (Prophet/XGBoost/LightGBM outputs — see
+[Phase7_Machine_Learning_Strategy.md](Phase7_Machine_Learning_Strategy.md)) plotted against recent
+actuals, with confidence bands and model-comparison metrics (MAE/RMSE/MAPE) surfaced per store.
+
+### 3.7 Inventory Planning Dashboard
+Derived from the Forecast Dashboard's output: for each store, compares forecasted demand against
+its recent rolling-average baseline to flag **stockout risk** (forecast meaningfully above
+baseline, e.g. ahead of a promo/holiday) or **overstock risk** (forecast meaningfully below a
+declining baseline), with a suggested reorder-adjustment direction. This is the direct
+translation of forecasting output into the inventory-optimization business objective.
+
+### 3.8 Regional Performance
+Store-type and assortment act as the available proxy for "region"-style segmentation in this
+dataset (Rossmann does not publish a geographic region field); this page compares performance
+across `StoreType`/`Assortment` segments (`06_top_performing_stores_by_type.sql`) as the
+practical regional/segment-level view.
+
+### 3.9 KPI Dashboard
+Consolidated metric board: the Sales, Inventory, Store/Promotion, and Forecast KPIs defined in
+Section 9 of [Phase1_Business_Understanding.md](Phase1_Business_Understanding.md), filterable by
+the global filter set, for a single exportable stakeholder report.
+
+## 4. Data Flow
+
+```
+data/processed/*.parquet  →  PostgreSQL (sql/schemas, sql/queries)  →  dashboard/pages/*.py
+                           ↘ src/feature_engineering + src/machine_learning (forecasts) ↗
+```
+
+Each page queries either the PostgreSQL warehouse (descriptive/historical pages) or model
+artifacts in `models/artifacts/` (Forecast and Inventory Planning pages), through shared
+data-access helpers in `dashboard/components/`.
+
+## 5. Implementation Status
+
+Dashboard pages are designed here but not yet implemented — `dashboard/pages/`,
+`dashboard/components/`, and `dashboard/assets/` remain placeholders until the forecasting
+models (Phase 7) exist to populate the Forecast and Inventory Planning pages. Pages 3.1–3.5 and
+3.8–3.9 can be implemented against the SQL layer alone once Phase 5 is loaded into PostgreSQL.

@@ -1,0 +1,30 @@
+# Core
+pandas
+numpy
+scipy
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# Dashboard
+streamlit
+
+# Forecasting / ML
+prophet
+xgboost
+lightgbm
+scikit-learn
+
+# Notebook environment
+jupyter
+ipykernel
+
+# Utilities
+python-dotenv
+pyyaml
+tqdm
+
+# Testing
+pytest

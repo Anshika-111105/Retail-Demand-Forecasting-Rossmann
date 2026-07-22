@@ -1,0 +1,51 @@
+# Environment
+.env
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (raw/processed data is not versioned in git)
+data/raw/*
+data/processed/*
+data/interim/*
+data/external/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/interim/.gitkeep
+!data/external/.gitkeep
+
+# Models
+models/trained/*
+models/artifacts/*
+!models/trained/.gitkeep
+!models/artifacts/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Reports (generated)
+reports/figures/*
+reports/screenshots/*
+!reports/figures/.gitkeep
+!reports/screenshots/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
