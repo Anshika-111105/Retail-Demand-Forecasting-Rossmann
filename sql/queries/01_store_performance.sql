@@ -19,7 +19,7 @@ SELECT
     ROUND(sd.avg_daily_sales, 2)                                  AS avg_daily_sales,
     ROUND(sd.total_sales::NUMERIC / NULLIF(sd.total_customers, 0), 2) AS sales_per_customer,
     RANK() OVER (ORDER BY sd.total_sales DESC)                    AS revenue_rank,
-    ROUND(PERCENT_RANK() OVER (ORDER BY sd.total_sales) * 100, 1) AS revenue_percentile
+    ROUND((PERCENT_RANK() OVER (ORDER BY sd.total_sales) * 100)::NUMERIC, 1) AS revenue_percentile
 FROM store_daily sd
 JOIN dim_store ds ON ds.store_id = sd.store_id
 ORDER BY sd.total_sales DESC

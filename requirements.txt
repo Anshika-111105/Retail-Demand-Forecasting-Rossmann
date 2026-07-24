@@ -11,6 +11,10 @@ plotly
 # Dashboard
 streamlit
 
+# SQL / database
+sqlalchemy
+pg8000
+
 # Forecasting / ML
 prophet
 xgboost

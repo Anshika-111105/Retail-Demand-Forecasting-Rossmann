@@ -3,7 +3,8 @@
 
 **Methodology Reference:** CRISP-DM — Phase 5 (Business Analytics / Modeling support)
 **Database:** PostgreSQL
-**Document Version:** 1.0
+**Document Version:** 1.1 — schema and all 8 queries executed and validated against a real
+PostgreSQL 16 instance loaded with the full processed dataset (1,115 stores / 1,017,209 rows)
 
 ---
 
@@ -48,7 +49,24 @@ Both tables mirror the merged `data/processed/rossmann_train_store_merged.parque
 - All queries operate only on `is_open = TRUE` rows for sales-level aggregation, consistent with
   the Phase 3 decision to treat closed-store zero-sales as structural, not demand signal.
 
-## 5. Consumption
+## 5. Validation
+
+The schema and all 8 queries were executed against a PostgreSQL 16 instance loaded with the full
+processed dataset (`dim_store`: 1,115 rows, `fact_sales`: 1,017,209 rows, 2013-01-01–2015-07-31 —
+row counts and date range verified to match `data/processed/rossmann_train_store_merged.parquet`
+exactly). One bug surfaced and was fixed: `01_store_performance.sql` originally called
+`ROUND()` on `PERCENT_RANK()`'s raw `double precision` output, which PostgreSQL has no overload
+for — fixed with an explicit `::NUMERIC` cast. Results were spot-checked for plausibility, e.g.:
+
+- Promotion uplift ranges up to ~100% for the most promo-responsive stores.
+- Easter/Christmas holidays show +40–42% average sales vs. a normal day; ordinary
+  `school_holiday` days show a much smaller +3.5% effect — consistent with the two holiday types
+  being different in kind, not just degree.
+- Sunday (`day_of_week = 7`) shows far fewer observations than other weekdays (~200–400 vs.
+  ~13,000–15,000 per month) but a much higher average — expected, since most stores are closed on
+  Sundays and only a handful of exception stores trade, at unusually high volume.
+
+## 6. Consumption
 
 These queries (or parameterized variants of them) back:
 - The **Streamlit dashboard's** Store Performance, Promotion Analytics, Holiday Impact, and KPI
