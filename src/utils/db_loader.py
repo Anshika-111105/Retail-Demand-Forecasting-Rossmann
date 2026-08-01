@@ -34,12 +34,13 @@ _FACT_COLUMN_MAP = {
 
 
 def get_postgres_engine() -> Engine:
-    """Build a SQLAlchemy engine from the DB_* environment variables in .env."""
-    host = os.environ.get("DB_HOST", "localhost")
-    port = os.environ.get("DB_PORT", "5432")
-    name = os.environ.get("DB_NAME", "rossmann")
-    user = os.environ.get("DB_USER", "rossmann")
-    password = os.environ.get("DB_PASSWORD", "rossmann")
+    """Build a SQLAlchemy engine from config or environment variables."""
+    from config import cfg
+    host = os.environ.get("DB_HOST", cfg.db_host)
+    port = os.environ.get("DB_PORT", str(cfg.db_port))
+    name = os.environ.get("DB_NAME", cfg.db_name)
+    user = os.environ.get("DB_USER", cfg.db_user)
+    password = os.environ.get("DB_PASSWORD", cfg.db_password)
     return create_engine(f"postgresql+pg8000://{user}:{password}@{host}:{port}/{name}")
 
 

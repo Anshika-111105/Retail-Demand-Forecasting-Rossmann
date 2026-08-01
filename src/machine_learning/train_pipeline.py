@@ -18,9 +18,9 @@ from src.utils.data_validation import validate_rossmann_dataset  # noqa: E402
 from src.machine_learning.models import RossmannProphetWrapper, RossmannTreeWrapper  # noqa: E402
 from src.machine_learning.validation import time_series_cv_splits, evaluate_predictions  # noqa: E402
 
-# Configurable subset of stores to train Prophet on (to keep execution times short).
-# XGBoost and LightGBM train on all stores globally.
-STORES_TO_FORECAST = list(range(1, 11))  # Stores 1 to 10
+from config import cfg
+
+STORES_TO_FORECAST = cfg.target_stores
 
 logger = get_logger("train_pipeline", PROJECT_ROOT / "logs")
 
@@ -43,7 +43,7 @@ def load_datasets() -> tuple[pd.DataFrame, pd.DataFrame]:
 def run_cross_validation(train_df: pd.DataFrame) -> dict[str, list[dict[str, float]]]:
     """Run rolling time-series CV on Prophet, XGBoost, and LightGBM."""
     logger.info("Starting Time-Series Cross Validation...")
-    splits = time_series_cv_splits(train_df, n_folds=3, val_window_days=42)
+    splits = time_series_cv_splits(train_df, n_folds=cfg.n_folds, val_window_days=cfg.val_window_days)
     
     results = {
         "Prophet": [],
@@ -74,7 +74,7 @@ def run_cross_validation(train_df: pd.DataFrame) -> dict[str, list[dict[str, flo
         
         # 2. XGBoost
         logger.info("Fitting global XGBoost model...")
-        xgb_model = RossmannTreeWrapper(model_type="xgboost")
+        xgb_model = RossmannTreeWrapper(model_type="xgboost", params=cfg.xgb_params)
         xgb_model.fit(train_fold)
         xgb_preds = xgb_model.predict(val_fold)
         xgb_metrics = evaluate_predictions(val_fold, xgb_preds)
@@ -83,7 +83,7 @@ def run_cross_validation(train_df: pd.DataFrame) -> dict[str, list[dict[str, flo
         
         # 3. LightGBM
         logger.info("Fitting global LightGBM model...")
-        lgb_model = RossmannTreeWrapper(model_type="lightgbm")
+        lgb_model = RossmannTreeWrapper(model_type="lightgbm", params=cfg.lgbm_params)
         lgb_model.fit(train_fold)
         lgb_preds = lgb_model.predict(val_fold)
         lgb_metrics = evaluate_predictions(val_fold, lgb_preds)
@@ -122,13 +122,13 @@ def train_final_models(train_df: pd.DataFrame, test_df: pd.DataFrame) -> tuple[R
     prophet_test_preds = prophet_model.predict(test_df)
     
     # 2. XGBoost
-    xgb_model = RossmannTreeWrapper(model_type="xgboost")
+    xgb_model = RossmannTreeWrapper(model_type="xgboost", params=cfg.xgb_params)
     xgb_model.fit(train_df)
     logger.info("Generating test predictions with XGBoost...")
     xgb_test_preds = xgb_model.predict(test_df)
     
     # 3. LightGBM
-    lgb_model = RossmannTreeWrapper(model_type="lightgbm")
+    lgb_model = RossmannTreeWrapper(model_type="lightgbm", params=cfg.lgbm_params)
     lgb_model.fit(train_df)
     logger.info("Generating test predictions with LightGBM...")
     lgb_test_preds = lgb_model.predict(test_df)

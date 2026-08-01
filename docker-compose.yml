@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16
+    container_name: rossmann_pg
+    restart: always
+    environment:
+      POSTGRES_DB: rossmann
+      POSTGRES_USER: rossmann
+      POSTGRES_PASSWORD: rossmann
+    ports:
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/schemas/01_create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile
+    container_name: rossmann_dashboard
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=rossmann
+      - DB_USER=rossmann
+      - DB_PASSWORD=rossmann
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
