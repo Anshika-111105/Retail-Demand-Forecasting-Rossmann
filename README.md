@@ -4,7 +4,7 @@ An end-to-end enterprise analytics and machine learning solution built following
 
 ---
 
-## 1. Project Statement (Problem Statement)
+## 1. Business Statement (Problem Statement)
 Traditional retail inventory management struggles with balancing **holding costs** against **stockout penalties**. In drugstore networks:
 - Sales patterns exhibit high seasonality, promotional response, weekly patterns (Sunday closures), and regional public holiday impacts.
 - Manual ordering methods fail to capture non-linear relationships across 1,115+ stores, leading to either capital tied up in overstock or lost revenue from stockouts.
@@ -30,7 +30,23 @@ This platform implements a data-to-decision pipeline containing:
 
 ---
 
-## 4. Tech Stack Used & Functionality
+## 4. Data Understanding
+The platform models sales demand using the Kaggle **Rossmann Store Sales** dataset, consisting of daily records from 1,115 drugstores over 2.5 years (~1.02M rows).
+
+### Primary Datasets:
+*   **`train.csv`**: Contains daily sales transactions, customer volume, promotion flags, state/school holidays, and store open status.
+*   **`store.csv`**: Store-level attributes including store type (a, b, c, d), assortment type (a, b, c), competitor distance, competitor open month/year, and active multi-stage promotion intervals (Promo2).
+*   **`test.csv`**: A held-out 48-day test period (from 2015-08-01 to 2015-09-17) used to forecast future demand and test inventory plan efficacy.
+
+### Key Exploratory Data Analysis (EDA) Insights:
+1.  **Weekly Seasonality**: A clear sales drop occurs on Sundays due to regional store closure regulations (most stores show 0 sales and customers on Sundays).
+2.  **Promotion Impact**: Active promotions (Promo = 1) lift daily sales by an average of 40% per store.
+3.  **Competition Influence**: Stores with closer competitors experience a lower baseline sales level, but promotional responsiveness remains highly pronounced.
+4.  **Holidays**: Public holidays (StateHoliday = 'a', 'b', 'c') cause significant temporary spikes on preceding open days followed by complete closures.
+
+---
+
+## 5. Tech Stack Used & Functionality
 
 | Technology | Functionality |
 | :--- | :--- |
@@ -48,7 +64,7 @@ This platform implements a data-to-decision pipeline containing:
 
 ---
 
-## 5. System Architecture
+## 6. System Architecture
 
 ```mermaid
 graph TD
@@ -66,7 +82,7 @@ graph TD
 
 ---
 
-## 6. Project Structure
+## 7. Project Structure
 
 ```
 .
@@ -108,7 +124,7 @@ graph TD
 
 ---
 
-## 7. Running the Project
+## 8. Running the Project
 
 ### Using the CLI (`main.py`)
 Run tasks directly from your terminal using Python:
@@ -140,7 +156,7 @@ docker compose down -v
 
 ---
 
-## 8. Future Scope
+## 9. Future Scope
 1. **Automated MLOps Retraining Trigger**: Schedule pipeline executions automatically when validation metrics drift past performance thresholds.
 2. **Deep Learning Forecasting**: Incorporate architectures like DeepAR or Temporal Fusion Transformers (TFT) for comparative analysis against trees.
 3. **API Serving Layer**: Wrap final models inside a FastAPI service to provide external real-time demand forecast endpoints for other ERP systems.
