@@ -97,6 +97,14 @@ training cost in production given the hardware constraint.
 
 ## 8. Implementation Status
 
-Modeling code lives in `src/machine_learning/` (not yet implemented) and will consume the
-Phase 4 feature table once feature engineering code is written. This document defines the plan
-that implementation must follow.
+Phase 7 is **fully implemented and completed**. 
+- The modeling code and wrapper interfaces are implemented in `src/machine_learning/models.py`.
+- Rolling-origin time-series cross-validation splits and performance metrics calculation are implemented in `src/machine_learning/validation.py`.
+- The training pipeline is orchestrated by `src/machine_learning/train_pipeline.py`.
+- Final trained models are saved in `models/trained/`, and combined predictions (actuals + validation OOF forecasts + future test forecasts) are exported to `models/artifacts/predictions.parquet` to feed the Streamlit dashboard.
+- Average CV results across 3 folds (evaluation on open days):
+  - **Prophet** (stores 1-10): MAE = 720.47, MAPE = 10.85%, R² = 0.840
+  - **XGBoost**: MAE = 653.75, MAPE = 9.24%, R² = 0.911
+  - **LightGBM**: MAE = 661.12, MAPE = 9.36%, R² = 0.909
+- 7 unit tests in `tests/unit/test_modeling.py` successfully validate splits, wrapper interfaces, and metrics calculation.
+

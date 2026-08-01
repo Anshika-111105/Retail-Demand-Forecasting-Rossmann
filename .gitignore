@@ -44,6 +44,7 @@ reports/screenshots/*
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 
 # OS

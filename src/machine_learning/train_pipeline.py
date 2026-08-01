@@ -14,6 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.utils.logging_utils import get_logger  # noqa: E402
+from src.utils.data_validation import validate_rossmann_dataset  # noqa: E402
 from src.machine_learning.models import RossmannProphetWrapper, RossmannTreeWrapper  # noqa: E402
 from src.machine_learning.validation import time_series_cv_splits, evaluate_predictions  # noqa: E402
 
@@ -203,6 +204,8 @@ def save_predictions_for_dashboard(train_df: pd.DataFrame, oof_df: pd.DataFrame,
 
 def main():
     train_df, test_df = load_datasets()
+    validate_rossmann_dataset(train_df, is_test=False)
+    validate_rossmann_dataset(test_df, is_test=True)
     cv_results, oof_df = run_cross_validation(train_df)
     _, _, _, test_preds_df = train_final_models(train_df, test_df)
     save_predictions_for_dashboard(train_df, oof_df, test_preds_df)
