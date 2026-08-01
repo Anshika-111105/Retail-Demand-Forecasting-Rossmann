@@ -1,94 +1,146 @@
 # Retail Demand Forecasting & Inventory Optimization Platform
 
-RetailX analytics platform — built following CRISP-DM methodology — covering
-data preparation, exploratory analysis, feature engineering, demand
-forecasting (Prophet, XGBoost, LightGBM), and an inventory-optimization
-dashboard on top of the Kaggle **Rossmann Store Sales** dataset (1,115+
-drugstore locations across multiple regions).
+An end-to-end enterprise analytics and machine learning solution built following the **CRISP-DM** methodology. The platform forecasts store-level daily sales demand across 1,115+ drugstore locations and translates those forecasts into actionable inventory safety stocks, reorder recommendations, and stockout risk indicators.
 
-## Project Structure
+---
+
+## 1. Project Statement (Problem Statement)
+Traditional retail inventory management struggles with balancing **holding costs** against **stockout penalties**. In drugstore networks:
+- Sales patterns exhibit high seasonality, promotional response, weekly patterns (Sunday closures), and regional public holiday impacts.
+- Manual ordering methods fail to capture non-linear relationships across 1,115+ stores, leading to either capital tied up in overstock or lost revenue from stockouts.
+- Store managers lack access to interactive dashboards showing side-by-side comparative model forecasts and safety stock recommendations.
+
+---
+
+## 2. Proposed Solution
+This platform implements a data-to-decision pipeline containing:
+1. **Relational Data Warehouse**: An OLAP database layer in PostgreSQL storing descriptive store metrics and sales records.
+2. **Machine Learning Forecasting Engine**: An ensemble modeling system using per-store **Prophet** models (capturing calendar effects and weekly patterns) alongside global **XGBoost** and **LightGBM** models (learning complex cross-store interactions).
+3. **Inventory Planning Dashboard**: An interactive Streamlit dashboard mapping model forecasts directly to reorder metrics (safety stock, reorder point, stockout risks) using lead time and target service levels.
+
+---
+
+## 3. Project Objectives & Deliverables
+- **Data Ingestion & Warehousing**: Merging, cleaning, and loading 1.02M sales records into PostgreSQL.
+- **Robust Feature Engineering**: Extracting lag characteristics, rolling metrics, and time-based cyclical features.
+- **Accurate Forecasting**: Training models evaluating 3-fold rolling cross-validation with an $R^2 > 0.90$.
+- **Early Data Validation**: Asserting schema integrity, null checks, and value boundaries at runtime to prevent training corruptions.
+- **Actionable Decision Interface**: Visualizing reorder recommendations, safety stock margins, and interactive performance comparisons.
+- **Production-grade Containerization**: Packaging the workspace using Docker and Docker Compose.
+
+---
+
+## 4. Tech Stack Used & Functionality
+
+| Technology | Functionality |
+| :--- | :--- |
+| **Python 3.11** | Core programming language for processing pipelines and model development. |
+| **Pandas / NumPy / SciPy** | Data wrangling, array manipulation, and statistical distribution modeling. |
+| **PostgreSQL 16** | Relational OLAP data warehouse. |
+| **SQLAlchemy / pg8000** | Python database connector and object-relational mapping (ORM) layer. |
+| **Prophet** | Local per-store additive regression time-series forecasting. |
+| **XGBoost / LightGBM** | Global gradient boosted decision tree regressors with native categorical features support. |
+| **Plotly Express / GO** | Interactive, dynamic dashboard charts. |
+| **Streamlit** | Multi-page frontend interface for dashboard users. |
+| **Docker / Docker Compose** | Containerization of PostgreSQL database and Streamlit application services. |
+| **PyTest** | Automated unit testing framework. |
+| **PyYAML** | Decoding external configuration scripts (`config/config.yaml`). |
+
+---
+
+## 5. System Architecture
+
+```mermaid
+graph TD
+    A[Raw Datasets train.csv, store.csv] -->|ETL Prep| B[Cleaned Parquet Features]
+    B -->|DB Loader| C[(PostgreSQL Warehouse)]
+    B -->|Pipeline Entry| D[Runtime Validation Assertions]
+    D -->|Passed| E[Rolling Time-Series Cross Validation]
+    E -->|Fit Models| F[Prophet, XGBoost, LightGBM]
+    F -->|Export Models| G[models/trained/ PKL]
+    F -->|Export Forecasts| H[models/artifacts/predictions.parquet]
+    C -->|BI Queries| I[Streamlit Descriptive Pages 1-7]
+    H -->|Parquet Read| J[Streamlit Predictive Pages 8-9]
+    J -->|Configurable Z-Score & Lead Time| K[Safety Stock & Reorder Suggestions]
+```
+
+---
+
+## 6. Project Structure
 
 ```
 .
+├── .claude/                    # Local IDE tool execution state (gitignored)
+├── config/                     # Pipeline YAML configs
+│   └── config.yaml             # Central configuration file
 ├── data/
-│   ├── raw/                # Original, immutable Rossmann source files (never edited)
-│   ├── interim/             # Intermediate outputs between cleaning steps
-│   ├── processed/           # Final, analysis-ready merged dataset (train + store)
-│   └── external/            # Third-party/supplementary data (e.g. German public holidays, macro data)
-├── notebooks/                # Exploratory & phase-driven Jupyter notebooks (numbered)
-├── sql/
-│   ├── schemas/              # DDL — table/view definitions for the warehouse
-│   ├── queries/               # Ad-hoc and reporting SQL queries
-│   └── views/                 # Reusable SQL views for BI/reporting
-├── dashboard/
-│   ├── pages/                 # Streamlit multi-page app pages
-│   ├── components/            # Reusable UI components (charts, filters, KPIs)
-│   └── assets/                 # Static assets (logos, css, images)
-├── src/
-│   ├── feature_engineering/    # Feature creation logic (lags, rolling stats, calendar features)
-│   ├── machine_learning/       # Model training, evaluation, inference code
-│   └── utils/                  # Shared helpers (I/O, logging, validation)
-├── config/                     # Environment/pipeline configuration files (YAML/JSON)
-├── models/
-│   ├── trained/                 # Serialized trained model artifacts
-│   └── artifacts/                # Metrics, feature importances, encoders, scalers
-├── reports/
-│   ├── figures/                  # Generated charts/plots for reporting
-│   └── screenshots/               # Dashboard/app screenshots for documentation
-├── docs/                          # Phase-by-phase CRISP-DM documentation
-├── logs/                          # Runtime/pipeline execution logs
-├── tests/
-│   ├── unit/                       # Unit tests for individual functions/modules
-│   └── integration/                 # End-to-end pipeline tests
+│   ├── raw/                    # Immutable source CSV files
+│   ├── interim/                # Cleaned intermediate tables
+│   └── processed/              # Analysis-ready merged Parquet features
+├── dashboard/                  # Multi-page Streamlit application
+│   ├── app.py                  # Streamlit entry point
+│   ├── pages/                  # Descriptive & predictive pages (1-9)
+│   └── components/             # Reusable UI widgets & DB connectors
 ├── deployment/
-│   ├── docker/                       # Dockerfile(s) and container configs
-│   └── ci_cd/                         # CI/CD pipeline definitions
-├── README.md                          # Project overview (this file)
-├── requirements.txt                    # Python dependencies
-├── .gitignore                          # Files/folders excluded from version control
-├── LICENSE                              # Project license
-├── .env.example                         # Template for required environment variables
-├── config.py                            # Central configuration loader
-└── main.py                              # Project entry point
+│   └── docker/
+│       └── Dockerfile          # Optimized Streamlit app docker image
+├── docs/                       # CRISP-DM phase documents & plans
+├── logs/                       # Running execution pipeline logs
+├── models/
+│   ├── trained/                # Serialized final model pickles
+│   └── artifacts/              # predictions.parquet & validation metrics
+├── notebooks/                  # Numbered phase development notebooks
+├── sql/
+│   ├── schemas/                # SQL DDL warehouse table creation scripts
+│   └── queries/                # Analytical reports
+├── src/
+│   ├── feature_engineering/    # Feature creation scripts
+│   ├── machine_learning/       # Model wrappers & CV pipeline script
+│   └── utils/                  # Shared loggers & runtime validation
+├── tests/
+│   └── unit/                   # Automated unit test suite
+├── .gitignore                  # Git excluded list
+├── config.py                   # Central configuration parser
+├── docker-compose.yml          # Local multi-container Docker config
+├── main.py                     # Unified project command-line CLI
+└── requirements.txt            # System dependencies list
 ```
 
-### Folder Purpose Summary
+---
 
-| Folder | Purpose |
-|---|---|
-| `data/raw` | Untouched original Rossmann CSVs (`train.csv`, `store.csv`, `test.csv`, `sample_submission.csv`) — single source of truth |
-| `data/interim` | Partially cleaned/transformed data between pipeline steps |
-| `data/processed` | Final merged, analysis-ready dataset (`train.csv` joined with `store.csv`) |
-| `data/external` | Supplementary external data not part of the original Rossmann release |
-| `notebooks` | Numbered, phase-aligned notebooks (e.g. `01_data_preparation.ipynb`) |
-| `sql` | All SQL assets for warehouse modeling and reporting |
-| `dashboard` | Streamlit application for inventory/demand visualization |
-| `src/feature_engineering` | Reusable feature-building code for modeling |
-| `src/machine_learning` | Training/evaluation/inference logic for Prophet/XGBoost/LightGBM |
-| `src/utils` | Shared, generic helper functions used across the codebase |
-| `config` | Non-secret configuration files (paths, parameters, column maps) |
-| `models` | Persisted model binaries and their supporting artifacts |
-| `reports` | Output visuals and screenshots for stakeholders/documentation |
-| `docs` | CRISP-DM phase deliverables and technical write-ups |
-| `logs` | Structured logs from data pipelines and model runs |
-| `tests` | Automated unit and integration tests |
-| `deployment` | Containerization and CI/CD configuration |
+## 7. Running the Project
 
-## Dataset
+### Using the CLI (`main.py`)
+Run tasks directly from your terminal using Python:
 
-**Source:** [Rossmann Store Sales](https://www.kaggle.com/c/rossmann-store-sales) (Kaggle)
+```bash
+# 1. Run all unit tests
+python main.py --action test
 
-Rossmann operates 1,115+ drugstores across several European regions. The
-dataset provides ~2.5 years (2013-01-01 to 2015-07-31) of daily sales history
-per store (`train.csv`), a store attribute table with competition and
-promotion metadata (`store.csv`), and a held-out test window (`test.csv`).
-It was chosen over the original M5 Forecasting – Accuracy dataset because it
-is already in a long (tidy) daily format — no wide-to-long reshape is
-required — keeping memory footprint and feature-engineering runtime workable
-on constrained local hardware (8 GB RAM, no discrete GPU) while still
-representing a realistic multi-store demand forecasting and inventory
-optimization problem.
+# 2. Run data loading script into PostgreSQL database
+python main.py --action load-db
 
-See [docs/Phase1_Business_Understanding.md](docs/Phase1_Business_Understanding.md)
-and [docs/Phase2_Data_Understanding.md](docs/Phase2_Data_Understanding.md) for
-the full business and data understanding write-ups.
+# 3. Train models and generate forecasting predictions
+python main.py --action train
+
+# 4. Start the Streamlit dashboard server locally
+python main.py --action run-dashboard
+```
+
+### Using Docker Compose
+Ensure Docker Desktop is active on your host system. Spin up the entire database and Streamlit stack with a single command:
+
+```bash
+# Start containers in background mode and compile/build local images
+docker compose up --build -d
+
+# Stop and tear down all active containers and network volumes
+docker compose down -v
+```
+
+---
+
+## 8. Future Scope
+1. **Automated MLOps Retraining Trigger**: Schedule pipeline executions automatically when validation metrics drift past performance thresholds.
+2. **Deep Learning Forecasting**: Incorporate architectures like DeepAR or Temporal Fusion Transformers (TFT) for comparative analysis against trees.
+3. **API Serving Layer**: Wrap final models inside a FastAPI service to provide external real-time demand forecast endpoints for other ERP systems.
