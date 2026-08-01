@@ -30,23 +30,7 @@ This platform implements a data-to-decision pipeline containing:
 
 ---
 
-## 4. Data Understanding
-The platform models sales demand using the Kaggle **Rossmann Store Sales** dataset, consisting of daily records from 1,115 drugstores over 2.5 years (~1.02M rows).
-
-### Primary Datasets:
-*   **`train.csv`**: Contains daily sales transactions, customer volume, promotion flags, state/school holidays, and store open status.
-*   **`store.csv`**: Store-level attributes including store type (a, b, c, d), assortment type (a, b, c), competitor distance, competitor open month/year, and active multi-stage promotion intervals (Promo2).
-*   **`test.csv`**: A held-out 48-day test period (from 2015-08-01 to 2015-09-17) used to forecast future demand and test inventory plan efficacy.
-
-### Key Exploratory Data Analysis (EDA) Insights:
-1.  **Weekly Seasonality**: A clear sales drop occurs on Sundays due to regional store closure regulations (most stores show 0 sales and customers on Sundays).
-2.  **Promotion Impact**: Active promotions (Promo = 1) lift daily sales by an average of 40% per store.
-3.  **Competition Influence**: Stores with closer competitors experience a lower baseline sales level, but promotional responsiveness remains highly pronounced.
-4.  **Holidays**: Public holidays (StateHoliday = 'a', 'b', 'c') cause significant temporary spikes on preceding open days followed by complete closures.
-
----
-
-## 5. Tech Stack Used & Functionality
+## 4. Tech Stack Used & Functionality
 
 | Technology | Functionality |
 | :--- | :--- |
@@ -64,7 +48,7 @@ The platform models sales demand using the Kaggle **Rossmann Store Sales** datas
 
 ---
 
-## 6. System Architecture
+## 5. System Architecture
 
 ```mermaid
 graph TD
@@ -82,7 +66,7 @@ graph TD
 
 ---
 
-## 7. Project Structure
+## 6. Project Structure
 
 ```
 .
@@ -124,7 +108,7 @@ graph TD
 
 ---
 
-## 8. Running the Project
+## 7. Running the Project
 
 ### Using the CLI (`main.py`)
 Run tasks directly from your terminal using Python:
@@ -156,7 +140,7 @@ docker compose down -v
 
 ---
 
-## 9. Future Scope
+## 8. Future Scope
 1. **Automated MLOps Retraining Trigger**: Schedule pipeline executions automatically when validation metrics drift past performance thresholds.
 2. **Deep Learning Forecasting**: Incorporate architectures like DeepAR or Temporal Fusion Transformers (TFT) for comparative analysis against trees.
 3. **API Serving Layer**: Wrap final models inside a FastAPI service to provide external real-time demand forecast endpoints for other ERP systems.
